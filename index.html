@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <title>HHL Check-in Timer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-phase="waiting">
+  <header class="header">
+    <h1 class="title">HHL Check-in Timer</h1>
+    <button id="btnMute" type="button" class="link-btn" aria-pressed="false">Sound: On</button>
+  </header>
+
+  <section class="settings" id="settings">
+    <div class="row">
+      <label for="participants" class="label">Participants</label>
+      <input id="participants" class="num" type="number" inputmode="numeric" min="1" step="1" value="18">
+    </div>
+
+    <div class="row">
+      <span class="label">Speaking</span>
+      <div class="choices" role="radiogroup" aria-label="Speaking time">
+        <label class="choice"><input type="radio" name="speaking" value="40"><span>40s</span></label>
+        <label class="choice"><input type="radio" name="speaking" value="50" checked><span>50s</span></label>
+        <label class="choice"><input type="radio" name="speaking" value="60"><span>60s</span></label>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="label">Interval</span>
+      <div class="choices" role="radiogroup" aria-label="Interval">
+        <label class="choice"><input type="radio" name="interval" value="5"><span>5s</span></label>
+        <label class="choice"><input type="radio" name="interval" value="10" checked><span>10s</span></label>
+      </div>
+    </div>
+
+    <div class="row total-row">
+      <span class="label">Total duration</span>
+      <span id="totalDuration" class="value">--</span>
+    </div>
+  </section>
+
+  <section class="display">
+    <div id="remaining" class="remaining" aria-live="polite">--:--</div>
+    <div class="meta">
+      <span id="status" class="status">waiting</span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span id="progress" class="progress">0 / 0</span>
+    </div>
+    <div id="totalRemaining" class="total-remaining">Total: --</div>
+  </section>
+
+  <nav class="controls">
+    <button id="btnStart" type="button" class="link-btn primary">Start</button>
+    <button id="btnPause" type="button" class="link-btn" disabled>Pause</button>
+    <button id="btnResume" type="button" class="link-btn" disabled>Resume</button>
+    <button id="btnReset" type="button" class="link-btn" disabled>Reset</button>
+  </nav>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

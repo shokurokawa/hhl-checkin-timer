@@ -1,0 +1,218 @@
+/* HHL Check-in Timer
+   モノトーン・タイポグラフィ中心・1画面完結（スクロール禁止）
+   全テキスト bold + ×1.25 サイズ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafafa;
+  --fg: #111;
+  --muted: #888;
+  --line: #e2e2e2;
+  --soft: #f0f0f0;
+  --invert-bg: #111;
+  --invert-fg: #fafafa;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Inter",
+               "Hiragino Sans", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(12px, 2.4vh, 28px) clamp(16px, 4vw, 48px);
+  gap: clamp(8px, 1.6vh, 18px);
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+/* 状態色（モノトーン枠内で濃淡変化） */
+body[data-phase="speaking"]  { background: var(--bg); }
+body[data-phase="interval"]  { background: var(--soft); }
+body[data-phase="paused"]    { background: var(--bg); color: var(--muted); }
+body[data-phase="finished"]  { background: var(--invert-bg); color: var(--invert-fg); }
+body[data-phase="finished"] .label,
+body[data-phase="finished"] .meta,
+body[data-phase="finished"] .total-remaining { color: var(--invert-fg); opacity: 0.7; }
+
+/* ===== Header ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: clamp(6px, 1vh, 12px);
+}
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+/* ===== Settings ===== */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.8vh, 10px);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 32px;
+}
+.label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 11em;
+}
+.value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+}
+.total-row .value { color: var(--fg); }
+
+.num {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  width: 5em;
+  padding: 4px 0;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.num:focus { border-bottom-color: var(--fg); }
+
+.choices {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.choice {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--muted);
+  user-select: none;
+}
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice span {
+  padding: 2px 0;
+  border-bottom: 1px solid transparent;
+}
+.choice input:checked + span {
+  color: var(--fg);
+  border-bottom-color: var(--fg);
+}
+
+/* ===== Display ===== */
+.display {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: clamp(4px, 1vh, 12px);
+  min-height: 0;
+}
+.remaining {
+  font-size: clamp(90px, 22vw, 250px);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.meta {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.dot { opacity: 0.5; }
+.total-remaining {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Controls ===== */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: clamp(16px, 4vw, 36px);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(8px, 1.4vh, 16px);
+}
+body[data-phase="finished"] .controls { border-top-color: rgba(255,255,255,0.2); }
+body[data-phase="finished"] .header { border-bottom-color: rgba(255,255,255,0.2); }
+
+.link-btn {
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 8px 4px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid transparent;
+  transition: color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.link-btn:hover:not(:disabled) { border-bottom-color: var(--fg); }
+.link-btn.primary { font-weight: 800; }
+.link-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+body[data-phase="finished"] .link-btn:hover:not(:disabled) { border-bottom-color: var(--invert-fg); }
+
+/* ===== Settings disabled (running) ===== */
+.settings.is-locked { opacity: 0.45; pointer-events: none; }
+
+/* ===== Mobile ===== */
+@media (max-width: 480px) {
+  body { padding: 14px 18px; gap: 10px; }
+  .label { min-width: 11em; font-size: 14px; }
+  .row { gap: 10px; min-height: 30px; }
+  .choices { gap: 12px; }
+  .choice, .num, .link-btn, .value { font-size: 18px; }
+  .remaining { font-size: clamp(100px, 32vw, 188px); }
+  .controls { gap: 18px; }
+  .title { font-size: 14px; }
+}
+
+/* 短い高さ（横向きスマホなど）のフォールバック */
+@media (max-height: 560px) {
+  .remaining { font-size: clamp(70px, 17vh, 150px); }
+  body { gap: 6px; }
+}
