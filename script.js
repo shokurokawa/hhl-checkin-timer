@@ -28,12 +28,14 @@
     isRunning: false,
     muted: false,
     rafId: null,
+    phaseTimerId: null,       // フェーズ遷移用 setTimeout（rAF揺らぎから独立）
   };
 
   // ===== DOM =====
   const $ = (id) => document.getElementById(id);
   const els = {
-    participants:  $('participants'),
+    participantsNum: $('participantsNum'), // PC 用 <input type="number">
+    participantsSel: $('participantsSel'), // SP 用 <select>（OSのホイールピッカー）
     totalDuration: $('totalDuration'),
     remaining:     $('remaining'),
     status:        $('status'),
@@ -203,11 +205,40 @@
   function readSpeaking()  { const r = document.querySelector('input[name="speaking"]:checked');  return r ? +r.value : 50; }
   function readInterval()  { const r = document.querySelector('input[name="interval"]:checked');  return r ? +r.value : 10; }
   function readParticipants() {
-    const v = els.participants.value.trim();
+    // PC/SP どちらも常に同期されているので、PC側（input）を真とする
+    const v = (els.participantsNum.value || '').trim();
     if (v === '') return null;
     const n = Number(v);
-    if (!Number.isInteger(n) || n < 1) return null;
+    if (!Number.isInteger(n) || n < 1 || n > 99) return null;
     return n;
+  }
+
+  // SP用 <select> に 1〜99 のオプションを生成（iOS で tap するとホイールピッカー）
+  function populateParticipantOptions(defaultValue) {
+    const sel = els.participantsSel;
+    sel.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= 99; i++) {
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = String(i);
+      if (i === defaultValue) opt.selected = true;
+      frag.appendChild(opt);
+    }
+    sel.appendChild(frag);
+  }
+
+  // PC/SP の入力を相互に同期（どちらが操作されても両方が同値になるよう保つ）
+  function syncParticipants(source) {
+    if (source === 'num') {
+      const n = parseInt(els.participantsNum.value, 10);
+      if (Number.isInteger(n) && n >= 1 && n <= 99) {
+        els.participantsSel.value = String(n);
+      }
+    } else {
+      els.participantsNum.value = els.participantsSel.value;
+    }
+    updateTotalDurationDisplay();
   }
 
   function isValidInput() {
@@ -335,14 +366,32 @@
     }
   }
 
+  // フェーズ遷移は setTimeout で時刻ぴったりに発火させる（rAFのジッタから独立）
+  // rAF は表示更新だけ担当 → 「秒表示が飛ぶ」「次フェーズの音が遅れる」を低減
+  function scheduleNextPhaseTransition(durationMs) {
+    cancelPhaseTransition();
+    state.phaseTimerId = setTimeout(() => {
+      state.phaseTimerId = null;
+      handlePhaseEnd();
+    }, durationMs);
+  }
+  function cancelPhaseTransition() {
+    if (state.phaseTimerId !== null) {
+      clearTimeout(state.phaseTimerId);
+      state.phaseTimerId = null;
+    }
+  }
+
   // ===== フェーズ遷移 =====
   function startSpeaking(index) {
     state.currentIndex = index;
     setPhase('speaking');
-    state.phaseEndAt = performance.now() + state.speakingTime * 1000;
+    const dur = state.speakingTime;
+    state.phaseEndAt = performance.now() + dur * 1000;
     updateProgress();
     const isLast = index >= state.participants - 1;
-    schedulePhaseAudio('speaking', state.speakingTime, true, isLast);
+    schedulePhaseAudio('speaking', dur, true, isLast);
+    scheduleNextPhaseTransition(dur * 1000);
     scheduleFrame();
   }
 
@@ -357,10 +406,14 @@
     setPhase('interval');
     state.phaseEndAt = performance.now() + effIv * 1000;
     schedulePhaseAudio('interval', effIv, false, false);
+    scheduleNextPhaseTransition(effIv * 1000);
     scheduleFrame();
   }
 
   function handlePhaseEnd() {
+    // 多重発火ガード（rAF と setTimeout の両方から呼ばれる可能性に備える）
+    if (state.phase !== 'speaking' && state.phase !== 'interval') return;
+    cancelPhaseTransition();
     if (state.phase === 'speaking') {
       const isLast = state.currentIndex >= state.participants - 1;
       if (isLast) {
@@ -375,6 +428,7 @@
 
   function finishAll() {
     cancelFrame();
+    cancelPhaseTransition();
     setPhase('finished');
     updateRemainingDisplay(0);
     els.totalRem.textContent = 'Total: done';
@@ -416,6 +470,7 @@
   function onPause() {
     if (state.phase !== 'speaking' && state.phase !== 'interval') return;
     cancelFrame();
+    cancelPhaseTransition();
     cancelScheduledAudio(); // 事前スケジュールした以後の音を中断
     state.pausedRemainingMs = Math.max(0, state.phaseEndAt - performance.now());
     state.prevPhase = state.phase;
@@ -436,6 +491,7 @@
     const remainSec = state.pausedRemainingMs / 1000;
     const isLast = state.currentIndex >= state.participants - 1;
     schedulePhaseAudio(resumePhase, remainSec, false, isLast);
+    scheduleNextPhaseTransition(remainSec * 1000);
     state.pausedRemainingMs = null;
     state.prevPhase = null;
 
@@ -446,6 +502,7 @@
 
   function onReset() {
     cancelFrame();
+    cancelPhaseTransition();
     cancelScheduledAudio();
     closeAudio();
     document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -512,7 +569,9 @@
 
   // ===== 初期化 =====
   function init() {
-    els.participants.addEventListener('input', updateTotalDurationDisplay);
+    populateParticipantOptions(18); // SP <select> に 1〜99 を埋め、デフォルト 18 を選択
+    els.participantsNum.addEventListener('input',  () => syncParticipants('num'));
+    els.participantsSel.addEventListener('change', () => syncParticipants('sel'));
     document.querySelectorAll('input[name="speaking"]').forEach(r =>
       r.addEventListener('change', updateTotalDurationDisplay));
     document.querySelectorAll('input[name="interval"]').forEach(r =>

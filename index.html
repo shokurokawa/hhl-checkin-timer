@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <title>HHL Check-in Timer</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-phase="waiting">
@@ -15,8 +16,10 @@
 
   <section class="settings" id="settings">
     <div class="row">
-      <label for="participants" class="label">Participants</label>
-      <input id="participants" class="num" type="number" inputmode="numeric" min="1" step="1" value="18">
+      <label for="participantsNum" class="label">Participants</label>
+      <!-- PC: 数値入力 / SP（タッチ端末）: <select> でOSのホイールピッカーが起動 -->
+      <input  id="participantsNum" class="num participants-pc" type="number" inputmode="numeric" min="1" max="99" step="1" value="18">
+      <select id="participantsSel" class="num participants-sp" aria-label="Participants"></select>
     </div>
 
     <div class="row">
