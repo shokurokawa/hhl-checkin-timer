@@ -52,7 +52,7 @@ python3 -m http.server 8765
 ## 使い方
 
 1. **Participants**（参加人数）を入力
-2. **Speaking**（持ち時間）を 40s / 50s / 60s から選択（デフォルト 50s）
+2. **Speaking**（持ち時間）を 30s / 40s / 50s / 60s から選択（デフォルト 50s）
 3. **Interval**（インターバル）を 5s / 10s / 15s から選択（デフォルト 10s）
 4. **Total duration** に合計時間が自動表示される
 5. **Start** ボタンを押すとタイマー開始
@@ -67,10 +67,10 @@ python3 -m http.server 8765
 
 ### 初期値
 
-- Participants: **18**
+- Participants: **22**
 - Speaking: **50s**
 - Interval: **10s**
-- Total duration: **17m 50s**
+- Total duration: **21m 29s**（22×50 + 21×9 = 1289秒。インターバルは実効 -1 秒）
 
 ---
 
@@ -119,7 +119,7 @@ MacBook Air や iPhone の Safari / Chrome でタブを開きっぱなしにし�
 |---|---|
 | 持ち時間の選択肢を増やす | `index.html` の Speaking ラジオボタン |
 | インターバルの選択肢を増やす | `index.html` の Interval ラジオボタン |
-| 初期値（参加人数・持ち時間・インターバル） | `index.html` の `value="18"` と `checked` 属性 |
+| 初期値（参加人数・持ち時間・インターバル） | `index.html` の `value="22"` と `checked` 属性 |
 | 配色・余白 | `style.css` の `:root { --bg ... }` ブロック |
 | 音色（周波数・長さ） | `script.js` の `playBell` / `playTick` / `playFinishBell` |
 | 残り何秒からチクタク音にするか | `script.js` の `tickFrame()` 内 `sec >= 1 && sec <= 5` |

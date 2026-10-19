@@ -17,7 +17,7 @@
 
   // ===== 状態 =====
   const state = {
-    participants: 18,
+    participants: 22,
     speakingTime: 50,
     intervalTime: 10,
     currentIndex: 0,
@@ -569,7 +569,7 @@
 
   // ===== 初期化 =====
   function init() {
-    populateParticipantOptions(18); // SP <select> に 1〜99 を埋め、デフォルト 18 を選択
+    populateParticipantOptions(22); // SP <select> に 1〜99 を埋め、デフォルト 22 を選択
     els.participantsNum.addEventListener('input',  () => syncParticipants('num'));
     els.participantsSel.addEventListener('change', () => syncParticipants('sel'));
     document.querySelectorAll('input[name="speaking"]').forEach(r =>
@@ -587,7 +587,7 @@
     document.addEventListener('keydown', onKeyDown);
 
     setPhase('waiting');
-    state.participants = readParticipants() || 18;
+    state.participants = readParticipants() || 22;
     state.speakingTime = readSpeaking();
     state.intervalTime = readInterval();
     updateProgress();

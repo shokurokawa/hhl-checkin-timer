@@ -18,13 +18,14 @@
     <div class="row">
       <label for="participantsNum" class="label">Participants</label>
       <!-- PC: 数値入力 / SP（タッチ端末）: <select> でOSのホイールピッカーが起動 -->
-      <input  id="participantsNum" class="num participants-pc" type="number" inputmode="numeric" min="1" max="99" step="1" value="18">
+      <input  id="participantsNum" class="num participants-pc" type="number" inputmode="numeric" min="1" max="99" step="1" value="22">
       <select id="participantsSel" class="num participants-sp" aria-label="Participants"></select>
     </div>
 
     <div class="row">
       <span class="label">Speaking</span>
       <div class="choices" role="radiogroup" aria-label="Speaking time">
+        <label class="choice"><input type="radio" name="speaking" value="30"><span>30s</span></label>
         <label class="choice"><input type="radio" name="speaking" value="40"><span>40s</span></label>
         <label class="choice"><input type="radio" name="speaking" value="50" checked><span>50s</span></label>
         <label class="choice"><input type="radio" name="speaking" value="60"><span>60s</span></label>
